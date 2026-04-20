@@ -141,14 +141,6 @@ st.info("Run sequence: source venv/bin/activate  ->  streamlit run app.py")
                 border-right: 1px solid rgba(16, 24, 40, 0.09);
             }
 
-            [data-testid="stToolbar"] {
-                display: none;
-            }
-
-            #MainMenu {
-                visibility: hidden;
-            }
-
             h1, h2, h3 {
                 font-family: 'Bricolage Grotesque', sans-serif !important;
                 color: var(--ink) !important;
