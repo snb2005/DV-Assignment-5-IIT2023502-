@@ -100,10 +100,326 @@ def top_corr_pairs(df: pd.DataFrame, columns: list[str], top_n: int = 3) -> list
     return pairs[:top_n]
 
 
-st.set_page_config(page_title="Iran Conflict Interactive Dashboard", layout="wide")
-st.title("Iran Region Conflict Dashboard: Markets, Energy, and Environment")
-st.caption("Data source: final_master_dataset.csv")
+def inject_custom_style() -> None:
+    st.markdown(
+        """
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+            :root {
+                --ink: #101828;
+                --soft-ink: #364152;
+                --muted: #667085;
+                --paper: #f5f2ea;
+                --panel: rgba(255, 255, 255, 0.78);
+                --panel-strong: rgba(255, 255, 255, 0.92);
+                --edge: rgba(16, 24, 40, 0.14);
+                --copper: #c76c36;
+                --teal: #0f766e;
 st.info("Run sequence: source venv/bin/activate  ->  streamlit run app.py")
+                --sky: #0ea5e9;
+            }
+
+            .stApp {
+                background:
+                    radial-gradient(1000px 620px at 8% -8%, rgba(14, 165, 233, 0.18), transparent 58%),
+                    radial-gradient(820px 580px at 96% 6%, rgba(199, 108, 54, 0.19), transparent 55%),
+                    repeating-linear-gradient(
+                        125deg,
+                        rgba(16, 24, 40, 0.03) 0px,
+                        rgba(16, 24, 40, 0.03) 1px,
+                        transparent 1px,
+                        transparent 18px
+                    ),
+                    linear-gradient(140deg, #f9f6f0 0%, #eef6fb 46%, #f9f6f0 100%);
+            }
+
+            [data-testid="stSidebar"] {
+                background:
+                    radial-gradient(120% 130% at 0% -10%, rgba(14, 165, 233, 0.14), transparent 50%),
+                    linear-gradient(180deg, rgba(255,255,255,0.95), rgba(244,247,252,0.93));
+                border-right: 1px solid rgba(16, 24, 40, 0.09);
+            }
+
+            h1, h2, h3 {
+                font-family: 'Bricolage Grotesque', sans-serif !important;
+                color: var(--ink) !important;
+                letter-spacing: -0.02em;
+            }
+
+            .stMarkdown p, .stCaption {
+                font-family: 'Bricolage Grotesque', sans-serif !important;
+            }
+
+            .hero-card {
+                background:
+                    linear-gradient(105deg, rgba(9, 34, 52, 0.94), rgba(15, 118, 110, 0.92) 47%, rgba(199, 108, 54, 0.9));
+                border: 1px solid rgba(255, 255, 255, 0.22);
+                border-radius: 26px;
+                padding: 1.3rem 1.5rem;
+                box-shadow: 0 22px 50px rgba(16, 24, 40, 0.22);
+                color: #f9fafb;
+                margin: 0.35rem 0 0.95rem 0;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .hero-card:after {
+                content: "";
+                position: absolute;
+                right: -80px;
+                top: -40px;
+                width: 240px;
+                height: 240px;
+                border-radius: 999px;
+                background: radial-gradient(circle, rgba(255,255,255,0.23), rgba(255,255,255,0.02));
+            }
+
+            .hero-title {
+                font-size: 2rem;
+                font-weight: 800;
+                margin-bottom: 0.28rem;
+                line-height: 1.06;
+            }
+
+            .hero-meta {
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                margin-top: 0.65rem;
+            }
+
+            .hero-chip {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.76rem;
+                background: rgba(255, 255, 255, 0.15);
+                padding: 0.31rem 0.56rem;
+                border: 1px solid rgba(255, 255, 255, 0.28);
+                border-radius: 999px;
+            }
+
+            .story-strip {
+                background: var(--panel-strong);
+                border: 1px solid var(--edge);
+                border-radius: 15px;
+                padding: 0.45rem 0.62rem;
+                margin: 0.25rem 0 0.9rem 0;
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                box-shadow: 0 10px 20px rgba(16, 24, 40, 0.08);
+            }
+
+            .story-pill {
+                background: rgba(15, 23, 42, 0.04);
+                border: 1px solid rgba(15, 23, 42, 0.12);
+                border-radius: 11px;
+                padding: 0.33rem 0.48rem;
+                font-size: 0.78rem;
+                color: var(--soft-ink);
+            }
+
+            .story-date {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.72rem;
+                color: var(--muted);
+                margin-right: 0.3rem;
+            }
+
+            .kpi-card {
+                background: var(--panel);
+                border: 1px solid var(--edge);
+                border-radius: 18px;
+                padding: 0.85rem 0.92rem 0.78rem 0.92rem;
+                box-shadow: 0 12px 28px rgba(16, 24, 40, 0.09);
+                min-height: 108px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .kpi-card:before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 5px;
+                height: 100%;
+                background: linear-gradient(180deg, var(--copper), var(--sky));
+            }
+
+            .kpi-label {
+                color: var(--muted);
+                font-size: 0.77rem;
+                letter-spacing: 0.04em;
+                margin-bottom: 0.28rem;
+                text-transform: uppercase;
+            }
+
+            .kpi-value {
+                color: var(--ink) !important;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 1.32rem;
+                font-weight: 600;
+                margin-bottom: 0.24rem;
+            }
+
+            .kpi-note {
+                color: var(--soft-ink);
+                font-size: 0.72rem;
+            }
+
+            .section-banner {
+                border: 1px solid var(--edge);
+                border-radius: 15px;
+                padding: 0.55rem 0.75rem;
+                background: var(--panel-strong);
+                box-shadow: 0 8px 18px rgba(16, 24, 40, 0.06);
+                margin: 0.75rem 0 0.55rem 0;
+                border-left-width: 7px;
+            }
+
+            .section-banner.tone-copper { border-left-color: var(--copper); }
+            .section-banner.tone-teal { border-left-color: var(--teal); }
+            .section-banner.tone-sky { border-left-color: var(--sky); }
+
+            .section-kicker {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.71rem;
+                letter-spacing: 0.07em;
+                color: var(--muted);
+                text-transform: uppercase;
+                margin-bottom: 0.13rem;
+            }
+
+            .section-title {
+                font-family: 'Bricolage Grotesque', sans-serif;
+                font-size: 1.18rem;
+                font-weight: 700;
+                color: var(--ink);
+                line-height: 1.2;
+            }
+
+            [data-baseweb="tab-list"] {
+                gap: 0.38rem;
+                border-bottom: 0;
+            }
+
+            [data-baseweb="tab"] {
+                background: rgba(255, 255, 255, 0.86);
+                border: 1px solid rgba(16, 24, 40, 0.16);
+                border-radius: 12px;
+                padding: 0.35rem 0.72rem;
+                font-family: 'Bricolage Grotesque', sans-serif;
+                font-weight: 600;
+            }
+
+            [data-baseweb="tab"][aria-selected="true"] {
+                background: linear-gradient(122deg, #0f766e, #0ea5e9, #c76c36);
+                color: #f8fafc;
+                border-color: transparent;
+                box-shadow: 0 7px 16px rgba(14, 116, 144, 0.26);
+            }
+
+            [data-testid="stPlotlyChart"],
+            [data-testid="stDataFrame"] {
+                border: 1px solid var(--edge);
+                border-radius: 15px;
+                background: var(--panel);
+                box-shadow: 0 10px 22px rgba(16, 24, 40, 0.08);
+                padding: 0.2rem;
+            }
+
+            @keyframes riseIn {
+                from { opacity: 0; transform: translateY(8px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .rise-in { animation: riseIn 560ms ease-out both; }
+
+            @media (max-width: 900px) {
+                .hero-title { font-size: 1.25rem; }
+                .kpi-value { font-size: 1.02rem; }
+                .section-title { font-size: 1.03rem; }
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_hero(start_date, end_date, records: int) -> None:
+    st.markdown(
+        f"""
+        <div class="hero-card rise-in">
+            <div class="hero-title">Iran Conflict Intelligence Console</div>
+            <div>A narrative cockpit for conflict shocks, commodity stress, market fragility, and environmental spillover.</div>
+            <div class="hero-meta">
+                <span class="hero-chip">Window: {start_date} -> {end_date}</span>
+                <span class="hero-chip">Rows: {records}</span>
+                <span class="hero-chip">Mode: Live analytical dashboard</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_kpi_cards(cards: list[tuple[str, str, str]]) -> None:
+    cols = st.columns(len(cards))
+    for col, (label, value, note) in zip(cols, cards):
+        with col:
+            st.markdown(
+                f"""
+                <div class="kpi-card rise-in">
+                    <div class="kpi-label">{label}</div>
+                    <div class="kpi-value">{value}</div>
+                    <div class="kpi-note">{note}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+
+def render_story_strip(events: list[dict]) -> None:
+    pills = []
+    for event in events:
+        pills.append(
+            f"<span class='story-pill'><span class='story-date'>{event['date']}</span>{event['label']}</span>"
+        )
+    st.markdown(f"<div class='story-strip rise-in'>{''.join(pills)}</div>", unsafe_allow_html=True)
+
+
+def section_banner(title: str, subtitle: str, tone: str = "tone-copper") -> None:
+    st.markdown(
+        f"""
+        <div class="section-banner {tone} rise-in">
+            <div class="section-kicker">{subtitle}</div>
+            <div class="section-title">{title}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def style_figure(fig: go.Figure, *, height: int = 470, is_geo: bool = False) -> None:
+    fig.update_layout(
+        height=height,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(255,255,255,0.68)",
+        font=dict(family="Bricolage Grotesque, sans-serif", size=13, color="#101828"),
+        title=dict(font=dict(size=21, color="#101828"), x=0.01, xanchor="left"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+        margin=dict(l=12, r=12, t=64, b=14),
+        hoverlabel=dict(bgcolor="#fff9f0", font=dict(color="#101828")),
+    )
+    if not is_geo:
+        fig.update_xaxes(showgrid=True, gridcolor="rgba(16,24,40,0.11)", zeroline=False)
+        fig.update_yaxes(showgrid=True, gridcolor="rgba(16,24,40,0.11)", zeroline=False)
+
+
+st.set_page_config(page_title="Iran Conflict Interactive Dashboard", layout="wide")
+inject_custom_style()
+st.caption("Data source: final_master_dataset.csv")
 
 df = load_data()
 missing_cols = [col for col in REQUIRED_COLUMNS if col not in df.columns]
@@ -140,12 +456,25 @@ snapshot_options = filtered_df["Date"].dt.strftime("%Y-%m-%d").tolist()
 snapshot_label = st.sidebar.selectbox("Map snapshot date", options=snapshot_options, index=len(snapshot_options) - 1)
 snapshot_row = filtered_df.loc[filtered_df["Date"] == pd.Timestamp(snapshot_label)].iloc[0]
 
-metric_cols = st.columns(5)
-metric_cols[0].metric("Peak Oil Price", f"${filtered_df['Oil_Price'].max():.2f}")
-metric_cols[1].metric("Stock Drawdown", f"{filtered_df['Stock_Index'].min() - filtered_df['Stock_Index'].max():.0f} pts")
-metric_cols[2].metric("Peak Conflict Intensity", f"{filtered_df['Conflict_Intensity_Index'].max():.1f}")
-metric_cols[3].metric("Total CO2", f"{int(filtered_df['Estimated_CO2_Tonnes'].sum()):,} t")
-metric_cols[4].metric("Avg Inflation Index", f"{filtered_df['Inflation_Pressure_Idx'].mean():.1f}")
+render_hero(start_date, end_date, len(filtered_df))
+render_kpi_cards(
+    [
+        ("Peak Oil Price", f"${filtered_df['Oil_Price'].max():.2f}", "Energy shock ceiling"),
+        (
+            "Stock Drawdown",
+            f"{filtered_df['Stock_Index'].min() - filtered_df['Stock_Index'].max():.0f} pts",
+            "Market compression",
+        ),
+        (
+            "Peak Conflict Intensity",
+            f"{filtered_df['Conflict_Intensity_Index'].max():.1f}",
+            "Highest stress signal",
+        ),
+        ("Total CO2", f"{int(filtered_df['Estimated_CO2_Tonnes'].sum()):,} t", "Cumulative emissions"),
+        ("Avg Inflation Index", f"{filtered_df['Inflation_Pressure_Idx'].mean():.1f}", "Price pressure baseline"),
+    ]
+)
+render_story_strip(EVENTS)
 
 oil_stock_corr = safe_corr(filtered_df["Oil_Price"], filtered_df["Stock_Index"])
 conflict_oil_corr = safe_corr(filtered_df["Conflict_Intensity_Index"], filtered_df["Oil_Price"])
@@ -175,7 +504,7 @@ top_pairs = top_corr_pairs(
 dashboard_tab, report_tab = st.tabs(["1) Dashboard", "2) Analytical Report"])
 
 with dashboard_tab:
-    st.subheader("(A) Time-Series Correlation Analysis")
+    section_banner("(A) Time-Series Correlation Analysis", "Market and conflict pulse", "tone-copper")
     tab_a1, tab_a2, tab_a3 = st.tabs([
         "Oil Prices vs Stock Market",
         "Conflict Intensity vs Oil Price",
@@ -194,6 +523,7 @@ with dashboard_tab:
         fig_a1.update_xaxes(title="Time")
         fig_a1.update_yaxes(title="Oil Price" + (" (normalized)" if normalize_series else " ($)"), secondary_y=False)
         fig_a1.update_yaxes(title="Stock Index" + (" (normalized)" if normalize_series else ""), secondary_y=True)
+        style_figure(fig_a1)
         st.plotly_chart(fig_a1, use_container_width=True)
         st.caption(f"Pearson correlation (Oil, Stock): {corr_oil_stock:.3f}")
 
@@ -209,6 +539,7 @@ with dashboard_tab:
         fig_a2.update_xaxes(title="Time")
         fig_a2.update_yaxes(title="Conflict Intensity" + (" (normalized)" if normalize_series else ""), secondary_y=False)
         fig_a2.update_yaxes(title="Oil Price" + (" (normalized)" if normalize_series else " ($)"), secondary_y=True)
+        style_figure(fig_a2)
         st.plotly_chart(fig_a2, use_container_width=True)
         st.caption(f"Pearson correlation (Conflict, Oil): {corr_conflict_oil:.3f}")
 
@@ -230,10 +561,11 @@ with dashboard_tab:
         fig_a3.update_xaxes(title="Time")
         fig_a3.update_yaxes(title="Daily Attacks" + (" (normalized)" if normalize_series else ""), secondary_y=False)
         fig_a3.update_yaxes(title="Estimated CO2" + (" (normalized)" if normalize_series else " (tonnes)"), secondary_y=True)
+        style_figure(fig_a3)
         st.plotly_chart(fig_a3, use_container_width=True)
         st.caption(f"Pearson correlation (Daily Attacks, CO2): {corr_co2_war:.3f}")
 
-    st.subheader("(B) Multi-Axis Visualization")
+    section_banner("(B) Multi-Axis Visualization", "Three-axis pressure monitor", "tone-teal")
     oil_multi = prep_series(filtered_df["Oil_Price"], rolling_window, normalize_series)
     stock_multi = prep_series(filtered_df["Stock_Index"], rolling_window, normalize_series)
     co2_multi = prep_series(filtered_df["Estimated_CO2_Tonnes"], rolling_window, normalize_series)
@@ -274,9 +606,10 @@ with dashboard_tab:
         ),
         hovermode="x unified",
     )
+    style_figure(fig_b)
     st.plotly_chart(fig_b, use_container_width=True)
 
-    st.subheader("(C) Geospatial Visualization")
+    section_banner("(C) Geospatial Visualization", "Regional risk map", "tone-sky")
     st.caption("Layers: conflict zones in Iran region, Strait of Hormuz oil route, and pollution hotspots")
 
     conflict_points = pd.DataFrame(
@@ -362,9 +695,10 @@ with dashboard_tab:
         ),
         margin=dict(l=10, r=10, t=60, b=10),
     )
+    style_figure(fig_c, height=620, is_geo=True)
     st.plotly_chart(fig_c, use_container_width=True)
 
-    st.subheader("(D) Heatmap Correlation Matrix")
+    section_banner("(D) Heatmap Correlation Matrix", "Cross-variable interaction grid", "tone-copper")
     heatmap_vars = ["Oil_Price", "Stock_Index", "Gold", "Inflation_Pressure_Idx", "Estimated_CO2_Tonnes"]
     corr_matrix = filtered_df[heatmap_vars].corr().round(2)
 
@@ -376,9 +710,10 @@ with dashboard_tab:
         zmax=1,
         title="Correlation Matrix: Oil, Stock, Gold, Inflation, CO2",
     )
+    style_figure(fig_d, height=510)
     st.plotly_chart(fig_d, use_container_width=True)
 
-    st.subheader("(E) Event Impact Visualization")
+    section_banner("(E) Event Impact Visualization", "Annotated disruption timeline", "tone-teal")
     fig_e = make_subplots(specs=[[{"secondary_y": True}]])
     fig_e.add_trace(go.Scatter(x=filtered_df["Date"], y=filtered_df["Oil_Price"], mode="lines", name="Oil Price", line=dict(color="#dc2626", width=2.5)), secondary_y=False)
     fig_e.add_trace(go.Scatter(x=filtered_df["Date"], y=filtered_df["Stock_Index"], mode="lines", name="Stock Index", line=dict(color="#2563eb", width=2.5)), secondary_y=True)
@@ -401,6 +736,7 @@ with dashboard_tab:
     fig_e.update_xaxes(title="Time")
     fig_e.update_yaxes(title_text="Oil Price ($)", secondary_y=False)
     fig_e.update_yaxes(title_text="Stock Index", secondary_y=True)
+    style_figure(fig_e, height=500)
     st.plotly_chart(fig_e, use_container_width=True)
 
     if analytical_impact_df.empty:
@@ -408,7 +744,7 @@ with dashboard_tab:
     else:
         st.dataframe(analytical_impact_df, use_container_width=True, hide_index=True)
 
-    st.subheader("(F) Causal / Lag Analysis")
+    section_banner("(F) Causal / Lag Analysis", "Lead-lag signal detection", "tone-sky")
     lag_col1, lag_col2 = st.columns(2)
     oil_to_stock_lag = lag_col1.slider("Oil -> Stock lag (days)", min_value=3, max_value=5, value=4)
     conflict_to_infl_lag = lag_col2.slider("Conflict -> Inflation lag (days)", min_value=7, max_value=30, value=14)
@@ -431,6 +767,7 @@ with dashboard_tab:
             opacity=0.8,
         )
         fig_f1.update_traces(marker=dict(color="#7c3aed", size=10, line=dict(color="#4c1d95", width=1)))
+        style_figure(fig_f1, height=430)
         st.plotly_chart(fig_f1, use_container_width=True)
 
     with plot_col2:
@@ -442,6 +779,7 @@ with dashboard_tab:
             opacity=0.8,
         )
         fig_f2.update_traces(marker=dict(color="#0891b2", size=10, line=dict(color="#155e75", width=1)))
+        style_figure(fig_f2, height=430)
         st.plotly_chart(fig_f2, use_container_width=True)
 
     corr_os = lag_corr_frame(filtered_df, "Oil_Price", "Stock_Index", 10)
@@ -465,6 +803,7 @@ with dashboard_tab:
     fig_f3.update_yaxes(title="Correlation", row=1, col=1)
     fig_f3.update_yaxes(title="Correlation", row=1, col=2)
     fig_f3.update_layout(height=450, showlegend=False)
+    style_figure(fig_f3, height=460)
     st.plotly_chart(fig_f3, use_container_width=True)
 
     selected_oil_corr = filtered_df["Oil_Price"].shift(oil_to_stock_lag).corr(filtered_df["Stock_Index"])
@@ -475,7 +814,7 @@ with dashboard_tab:
     )
 
 with report_tab:
-    st.subheader("2) Analytical Report")
+    section_banner("2) Analytical Report", "Auto-generated strategic summary", "tone-copper")
     st.caption("Auto-generated from the selected timeline filter.")
 
     with st.expander("Key Patterns", expanded=True):
